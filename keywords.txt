@@ -1,0 +1,28 @@
+#######################################
+# Syntax Coloring Map For Arduino_OAuth
+####################################### 
+# Class
+#######################################
+
+Arduino_OAuth	KEYWORD1
+OAuthClient	KEYWORD1
+
+#######################################
+# Methods and Functions 
+#######################################	
+
+setCredentials	KEYWORD2
+onGetTime	KEYWORD2
+
+get	KEYWORD2
+post	KEYWORD2
+put	KEYWORD2
+patch	KEYWORD2
+del	KEYWORD2
+
+responseStatusCode	KEYWORD2
+responseBody	KEYWORD2
+
+#######################################
+# Constants
+#######################################
