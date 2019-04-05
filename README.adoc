@@ -2,6 +2,8 @@
 
 OAuth client library for Arduino.
 
+This library depends on ArduinoHttpClient and ArduinoBearSSL.
+
 == License ==
 
 Copyright (c) 2019 Arduino SA. All rights reserved.
