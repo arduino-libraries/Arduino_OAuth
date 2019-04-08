@@ -20,7 +20,6 @@
 #include <ArduinoBearSSL.h>    // Arduino_OAuth depends on ArduinoBearSSL
 #include <ArduinoHttpClient.h> // Arduino_OAuth depends on ArduinoHttpClient
 #include <Arduino_OAuth.h>
-#include <utility/PercentEncoder.h>    // from Arduino_OAuth
 #include <WiFiNINA.h>
 
 #include "arduino_secrets.h"
@@ -100,9 +99,9 @@ void tweet(String text) {
 
   String requestBody;
 
-  // build the URL encoded request body, the text must be percent encoded
+  // build the URL encoded request body, the text must be URL encoded
   requestBody += "status=";
-  requestBody += PercentEncoder.encode(text);
+  requestBody += URLEncoder.encode(text);
 
   // HTTP POST it via the OAuth client, which sets the Authorization header for us
   oauthClient.post("/1.1/statuses/update.json", "application/x-www-form-urlencoded", requestBody);

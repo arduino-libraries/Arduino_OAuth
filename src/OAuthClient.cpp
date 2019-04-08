@@ -20,7 +20,6 @@
 #include <ArduinoBearSSL.h>
 
 #include "b64.h" // from ArduinoHttpClient
-#include "utility/PercentEncoder.h"
 
 #include "OAuthClient.h"
 
@@ -243,24 +242,24 @@ String OAuthClient::calculateSignature(const char* method, const char* url, unsi
   SHA1.beginHmac(_signingKey);
   SHA1.print(method);
   SHA1.print("&");
-  SHA1.print(PercentEncoder.encode(url));
+  SHA1.print(URLEncoder.encode(url));
   SHA1.print("&");
 
-  SHA1.print(PercentEncoder.encode("oauth_consumer_key="));
-  SHA1.print(PercentEncoder.encode(_consumerKey));
-  SHA1.print(PercentEncoder.encode("&"));
-  SHA1.print(PercentEncoder.encode("oauth_nonce="));
-  SHA1.print(PercentEncoder.encode(_nonce));
-  SHA1.print(PercentEncoder.encode("&"));
-  SHA1.print(PercentEncoder.encode("oauth_signature_method=HMAC-SHA1&"));
-  SHA1.print(PercentEncoder.encode("oauth_timestamp="));
-  SHA1.print(PercentEncoder.encode(String(time)));
-  SHA1.print(PercentEncoder.encode("&"));
-  SHA1.print(PercentEncoder.encode("oauth_token="));
-  SHA1.print(PercentEncoder.encode(_accessToken));
-  SHA1.print(PercentEncoder.encode("&"));
-  SHA1.print(PercentEncoder.encode("oauth_version=1.0&"));
-  SHA1.print(PercentEncoder.encode(body));
+  SHA1.print(URLEncoder.encode("oauth_consumer_key="));
+  SHA1.print(URLEncoder.encode(_consumerKey));
+  SHA1.print(URLEncoder.encode("&"));
+  SHA1.print(URLEncoder.encode("oauth_nonce="));
+  SHA1.print(URLEncoder.encode(_nonce));
+  SHA1.print(URLEncoder.encode("&"));
+  SHA1.print(URLEncoder.encode("oauth_signature_method=HMAC-SHA1&"));
+  SHA1.print(URLEncoder.encode("oauth_timestamp="));
+  SHA1.print(URLEncoder.encode(String(time)));
+  SHA1.print(URLEncoder.encode("&"));
+  SHA1.print(URLEncoder.encode("oauth_token="));
+  SHA1.print(URLEncoder.encode(_accessToken));
+  SHA1.print(URLEncoder.encode("&"));
+  SHA1.print(URLEncoder.encode("oauth_version=1.0&"));
+  SHA1.print(URLEncoder.encode(body));
   SHA1.endHmac();
 
   int rawSignatureLength = SHA1.available();
@@ -275,7 +274,7 @@ String OAuthClient::calculateSignature(const char* method, const char* url, unsi
   signatureLength = b64_encode((const unsigned char*)rawSignature, rawSignatureLength,  (unsigned char*)signature, signatureLength);
   signature[signatureLength] = '\0';
 
-  return PercentEncoder.encode(signature);
+  return URLEncoder.encode(signature);
 }
 
 String OAuthClient::calculateOauthAuthorization(const String& signature, unsigned long timestamp) {
