@@ -66,6 +66,14 @@ void setup() {
   Serial.println("You're connected to the network");
   Serial.println();
 
+  Serial.print("Waiting for the network time to sync ");
+  while (getTime() == 0) {
+    Serial.print(".");
+    delay(1000);
+  }
+  Serial.println();
+  Serial.println();
+
   // assign the OAuth credentials
   oauthClient.setCredentials(consumerKey, consumerKeySecret, accessToken, accessTokenSecret);
 
