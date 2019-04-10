@@ -1,6 +1,6 @@
 = Arduino_OAuth =
 
-OAuth client library for Arduino.
+OAuth 1.0 client library for Arduino.
 
 This library depends on ArduinoHttpClient and ArduinoBearSSL.
 
