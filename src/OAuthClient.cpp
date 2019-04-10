@@ -191,7 +191,27 @@ int OAuthClient::httpRequest(const char* method, const char* path, const char* c
     url += _ip[3];
   }
 
-  url += path;
+  const char* queryParams = NULL;
+  const char* bodyParams = NULL;
+
+  // split the path from query params if necessary
+  char* questionMark = strchr(path, '?');
+  if (questionMark != NULL) {
+    queryParams = (questionMark + 1);
+
+    const char* temp = path;
+
+    while (temp != questionMark) {
+      url += *temp++;
+    }
+  } else {
+    url += path;
+  }
+
+  if (strcmp(contentType, "application/x-www-form-urlencoded") == 0) {
+    // only use the body as params if the body is URL encoded
+    bodyParams = body;
+  }
 
   unsigned long time = 0;
 
@@ -199,7 +219,7 @@ int OAuthClient::httpRequest(const char* method, const char* path, const char* c
     time = _onGetTimeCallback();
   }
 
-  String signature = calculateSignature(method, url.c_str(), time, body);
+  String signature = calculateSignature(method, url.c_str(), time, queryParams, bodyParams);
   String authorization = calculateOauthAuthorization(signature, time);
 
   _httpClient.beginRequest();
@@ -237,29 +257,120 @@ String OAuthClient::createNonce() {
   return n;
 }
 
-String OAuthClient::calculateSignature(const char* method, const char* url, unsigned long time, const char* body)
+static int strcmp_pointer(const void* a, const void* b) {
+  return strcmp(*(const char**)a, *(const char**)b);
+}
+
+String OAuthClient::calculateSignature(const char* method, const char* url, unsigned long time, const char* queryParams, const char* bodyParams)
 {
+  // This function is long due to the complexity of the OAuth signature.
+  // It must collect all the parameters from the oauth, query, and body params,
+  // then sort the param key values lexographically. After these steps the 
+  // signature can be calculated.
+
+  // calculate the OAuth params
+  String oauthParams;
+
+  oauthParams += "oauth_consumer_key=";
+  oauthParams += _consumerKey;
+  oauthParams += "&oauth_nonce=";
+  oauthParams += _nonce;
+  oauthParams += "&oauth_signature_method=HMAC-SHA1&oauth_timestamp=";
+  oauthParams += String(time);
+  oauthParams += "&oauth_token=";
+  oauthParams += _accessToken;
+  oauthParams += "&oauth_version=1.0";
+
+  // calculate the length of all of the params
+  int paramsLength = oauthParams.length();
+  int queryParamsLength = strlen(queryParams);
+  int bodyParamsLength = strlen(bodyParams);
+
+  if (queryParams) {
+    paramsLength += (1 + queryParamsLength);
+  }
+
+  if (bodyParams) {
+    paramsLength += (1 + bodyParamsLength);
+  }
+
+  // copy the parameters to a buffer
+  char params[paramsLength + 1];
+  char* temp = params;
+
+  temp = strcpy(temp, oauthParams.c_str());
+  temp += oauthParams.length();
+
+  if (queryParams) {
+    *temp++ = '&';
+    strcpy(temp, queryParams);
+    temp += queryParamsLength;
+  }
+
+  if (bodyParams) {
+    *temp++ = '&';
+    strcpy(temp, bodyParams);
+    temp += bodyParamsLength;
+  }
+
+  *temp = '\0';
+
+  // caculate the number of parameters
+  int numParams = 0;
+  for (int i = 0; i < paramsLength; i++) {
+    if (params[i] == '=') {
+      numParams++;
+    }
+  }
+
+  // collect the keys of the parameters to an array
+  // and also replace the = and & characters with \0
+  // this will help with the sorting later
+  const char* paramKeys[numParams];
+  int paramIndex = 0;
+  const char* lastKey = params;
+
+  temp = params;
+  while (1) {
+    char c = *temp;
+
+    if (c == '\0') {
+      break;
+    } else if (c == '=') {
+      paramKeys[paramIndex++] = lastKey;
+
+       *temp = '\0';
+    } else if (c == '&') {
+      lastKey = (temp + 1);
+
+       *temp = '\0';
+    }
+
+    temp++;
+  }
+
+  // sort the param keys
+  qsort(paramKeys, numParams, sizeof(uintptr_t), strcmp_pointer);
+
+  // calculate the signature
   SHA1.beginHmac(_signingKey);
   SHA1.print(method);
   SHA1.print("&");
   SHA1.print(URLEncoder.encode(url));
   SHA1.print("&");
+  for (int i = 0; i < numParams; i++) {
+    const char* paramKey = paramKeys[i];
+    int keyLength = strlen(paramKey);
+    const char* paramValue = paramKey + keyLength + 1;
 
-  SHA1.print(URLEncoder.encode("oauth_consumer_key="));
-  SHA1.print(URLEncoder.encode(_consumerKey));
-  SHA1.print(URLEncoder.encode("&"));
-  SHA1.print(URLEncoder.encode("oauth_nonce="));
-  SHA1.print(URLEncoder.encode(_nonce));
-  SHA1.print(URLEncoder.encode("&"));
-  SHA1.print(URLEncoder.encode("oauth_signature_method=HMAC-SHA1&"));
-  SHA1.print(URLEncoder.encode("oauth_timestamp="));
-  SHA1.print(URLEncoder.encode(String(time)));
-  SHA1.print(URLEncoder.encode("&"));
-  SHA1.print(URLEncoder.encode("oauth_token="));
-  SHA1.print(URLEncoder.encode(_accessToken));
-  SHA1.print(URLEncoder.encode("&"));
-  SHA1.print(URLEncoder.encode("oauth_version=1.0&"));
-  SHA1.print(URLEncoder.encode(body));
+    SHA1.print(URLEncoder.encode(paramKey));
+    SHA1.print(URLEncoder.encode("="));
+    SHA1.print(URLEncoder.encode(paramValue));
+
+    if ((i + 1) < numParams) {
+      SHA1.print(URLEncoder.encode("&"));
+    }
+  }
   SHA1.endHmac();
 
   int rawSignatureLength = SHA1.available();
@@ -283,21 +394,15 @@ String OAuthClient::calculateOauthAuthorization(const String& signature, unsigne
   authorization += "OAuth ";
   authorization += "oauth_consumer_key=\"";
   authorization += _consumerKey;
-  authorization += "\",";
-  authorization += "oauth_nonce=\"";
+  authorization += "\",oauth_nonce=\"";
   authorization += _nonce;
-  authorization += "\",";
-  authorization += "oauth_signature=\"";
+  authorization += "\",oauth_signature=\"";
   authorization += signature;
-  authorization += "\",";
-  authorization += "oauth_signature_method=\"HMAC-SHA1\",";
-  authorization += "oauth_timestamp=\"";
+  authorization += "\",oauth_signature_method=\"HMAC-SHA1\",oauth_timestamp=\"";
   authorization += timestamp;
-  authorization += "\",";
-  authorization += "oauth_token=\"";
+  authorization += "\",oauth_token=\"";
   authorization += _accessToken;
-  authorization += "\",";
-  authorization += "oauth_version=\"1.0\"";
+  authorization += "\",oauth_version=\"1.0\"";
 
   return authorization;
 }

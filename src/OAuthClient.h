@@ -64,7 +64,7 @@ private:
   int httpRequest(const char* method, const char* path, const char* contentType, const char* body);
 
   String createNonce();
-  String calculateSignature(const char* method, const char* url, unsigned long time, const char* body);
+  String calculateSignature(const char* method, const char* url, unsigned long time, const char* queryParams, const char* bodyParams);
   String calculateOauthAuthorization(const String& signature, unsigned long timestamp);
 
 private:
