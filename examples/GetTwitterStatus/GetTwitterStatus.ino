@@ -1,7 +1,7 @@
 /*
   Get twitter status
 
-  This example shows a REST API GET using OAuth
+  This example shows a REST API GET using OAuth 1.0
   authentication. It then parses the JSON response.
 
   OAuth credentials can be retrieved from your Twitter

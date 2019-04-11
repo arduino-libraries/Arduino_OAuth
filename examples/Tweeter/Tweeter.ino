@@ -2,7 +2,7 @@
   Tweeter
 
   This sketch demonstrates how to post a Tweet directly to
-  Twitter via the Twitter's HTTP API using OAuth for authenticaion.
+  Twitter via the Twitter's HTTP API using OAuth 1.0 for authenticaion.
 
   OAuth credentials can be retrieved from the following
   website, using your Twitter account and creating a new
