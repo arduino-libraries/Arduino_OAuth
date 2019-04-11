@@ -1,16 +1,16 @@
 /*
   Get twitter status
 
-  This example shows a REST API GET using OAuth 
+  This example shows a REST API GET using OAuth
   authentication. It then parses the JSON response.
 
-  OAuth credentials can be retrieved from your Twitter 
+  OAuth credentials can be retrieved from your Twitter
   developer account after creating a new app:
 
     https://developer.twitter.com/en/apps
 
   Circuit:
-  
+
    - Arduino MKR WiFi 1010 board
 
   This example code is in the public domain.
@@ -20,8 +20,8 @@
 #include <ArduinoBearSSL.h>    // Arduino_OAuth depends on ArduinoBearSSL
 #include <ArduinoHttpClient.h> // Arduino_OAuth depends on ArduinoHttpClient
 #include <Arduino_OAuth.h>
+#include <Arduino_JSON.h>
 #include <WiFiNINA.h>
-#include <JSON.h>
 
 #include "arduino_secrets.h"
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
@@ -37,6 +37,8 @@ int status = WL_IDLE_STATUS;     // the Wifi radio's status
 
 WiFiSSLClient wifiSSLClient;
 OAuthClient oauthClient(wifiSSLClient, "api.twitter.com", 443);
+
+String twitterHandle = "arduino"; // Twitter handle to retrieve Tweets from
 
 void setup() {
   //Initialize serial and wait for port to open:
@@ -91,7 +93,7 @@ unsigned long getTime() {
 
 void loop() {
   // Twitter API requests latest Arduino status
-  oauthClient.get("/1.1/statuses/user_timeline.json?screen_name=arduino&count=1");
+  oauthClient.get("/1.1/statuses/user_timeline.json?screen_name=" + twitterHandle + "&count=1");
 
   int statusCode = oauthClient.responseStatusCode();
   String response = oauthClient.responseBody();
@@ -100,21 +102,24 @@ void loop() {
     // An error occurred
     Serial.println(statusCode);
     Serial.println(response);
-  }
-
-  else
-
-  {
+  } else {
     // Parse JSON response
     JSONVar statusesObject = JSON.parse(response);
-    Serial.println("");
-    Serial.println("@arduino twitter status: ");
+
+    // print the handle
+    Serial.print("@");
+    Serial.print(twitterHandle);
+    Serial.println("'s twitter status: ");
+
+    // print the tweet text, retweet + favorite counts
+    // we only care about the first item
     Serial.println(statusesObject[0]["text"]);
-    Serial.print("Retweeted: ");
+    Serial.print("Retweets: ");
     Serial.println(statusesObject[0]["retweet_count"]);
-    Serial.print("Favorited: ");
+    Serial.print("Likes: ");
     Serial.println(statusesObject[0]["favorite_count"]);
   }
+  Serial.println();
 
   // Wait one minute (see Twitter API rate limits before changing)
   delay(60 * 1000L);
