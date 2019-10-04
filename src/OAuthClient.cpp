@@ -315,7 +315,7 @@ String OAuthClient::calculateSignature(const char* method, const char* url, unsi
 
   *temp = '\0';
 
-  // caculate the number of parameters
+  // calculate the number of parameters
   int numParams = 0;
   for (int i = 0; i < paramsLength; i++) {
     if (params[i] == '=') {
