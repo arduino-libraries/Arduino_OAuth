@@ -1,5 +1,8 @@
 = Arduino_OAuth =
 
+image:https://github.com/arduino-libraries/Arduino_OAuth/workflows/Compile%20Examples/badge.svg["Compile Examples Status", link="https://github.com/arduino-libraries/Arduino_OAuth/actions?workflow=Compile+Examples"] image:https://github.com/arduino-libraries/Arduino_OAuth/workflows/Spell%20Check/badge.svg["Spell Check Status", link="https://github.com/arduino-libraries/Arduino_OAuth/actions?workflow=Spell+Check"]
+
+
 OAuth 1.0 client library for Arduino.
 
 This library depends on ArduinoHttpClient and ArduinoBearSSL.
