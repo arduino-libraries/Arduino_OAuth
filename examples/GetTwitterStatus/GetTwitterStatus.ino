@@ -1,5 +1,5 @@
 /*
-  Get twitter status
+  Get Twitter status
 
   This example shows a REST API GET using OAuth 1.0
   authentication. It then parses the JSON response.
@@ -33,7 +33,7 @@ const char consumerKeySecret[] = SECRET_CONSUMER_KEY_SECRET;
 const char accessToken[]       = SECRET_ACCESS_TOKEN;
 const char accessTokenSecret[] = SECRET_ACCESS_TOKEN_SECRET;
 
-int status = WL_IDLE_STATUS;     // the Wifi radio's status
+int status = WL_IDLE_STATUS;     // the WiFi radio's status
 
 WiFiSSLClient wifiSSLClient;
 OAuthClient oauthClient(wifiSSLClient, "api.twitter.com", 443);
@@ -54,7 +54,7 @@ void setup() {
     while (true);
   }
 
-  // attempt to connect to Wifi network:
+  // attempt to connect to WiFi network:
   while (status != WL_CONNECTED) {
     Serial.print("Attempting to connect to WPA SSID: ");
     Serial.println(ssid);

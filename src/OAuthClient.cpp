@@ -265,7 +265,7 @@ String OAuthClient::calculateSignature(const char* method, const char* url, unsi
 {
   // This function is long due to the complexity of the OAuth signature.
   // It must collect all the parameters from the oauth, query, and body params,
-  // then sort the param key values lexographically. After these steps the 
+  // then sort the param key values lexicographically. After these steps the 
   // signature can be calculated.
 
   // calculate the OAuth params
