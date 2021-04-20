@@ -1,20 +1,64 @@
 name: Compile Examples
-on: [push, pull_request]
+
+# See: https://docs.github.com/en/free-pro-team@latest/actions/reference/events-that-trigger-workflows
+on:
+  push:
+    paths:
+      - ".github/workflows/compile-examples.yml"
+      - "library.properties"
+      - "examples/**"
+      - "src/**"
+  pull_request:
+    paths:
+      - ".github/workflows/compile-examples.yml"
+      - "library.properties"
+      - "examples/**"
+      - "src/**"
+  schedule:
+    # Run every Tuesday at 8 AM UTC to catch breakage caused by changes to external resources (libraries, platforms).
+    - cron: "0 8 * * TUE"
+  workflow_dispatch:
+  repository_dispatch:
+
 jobs:
- build:
-   runs-on: ubuntu-latest
+  build:
+    name: ${{ matrix.board.fqbn }}
+    runs-on: ubuntu-latest
 
-   strategy:
-     matrix:
-       fqbn: [
-         "arduino:samd:mkrwifi1010"
-       ]
+    strategy:
+      fail-fast: false
 
-   steps:
-     - uses: actions/checkout@v1
-       with:
-         fetch-depth: 1
-     - uses: arduino/actions/libraries/compile-examples@master
-       with:
-         fqbn: ${{ matrix.fqbn }}
-         libraries: ArduinoECCX08 ArduinoBearSSL ArduinoHttpClient Arduino_JSON WiFiNINA
+      matrix:
+        board:
+          - fqbn: arduino:samd:mkrwifi1010
+            platforms: |
+              - name: arduino:samd
+          - fqbn: arduino:samd:nano_33_iot
+            platforms: |
+              - name: arduino:samd
+          - fqbn: arduino:mbed_nano:nanorp2040connect
+            platforms: |
+              - name: arduino:mbed_nano
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Compile examples
+        uses: arduino/compile-sketches@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          fqbn: ${{ matrix.board.fqbn }}
+          platforms: ${{ matrix.board.platforms }}
+          libraries: |
+            # Install the library from the local path.
+            - source-path: ./
+            # Additional library dependencies
+            - name: Arduino_JSON
+            - name: ArduinoBearSSL
+            - name: ArduinoECCX08
+            - name: ArduinoHttpClient
+            - name: WiFiNINA
+          sketch-paths: |
+            - examples
+
